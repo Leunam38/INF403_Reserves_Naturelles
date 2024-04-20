@@ -143,3 +143,52 @@ def taille_table(conn,table):
         print("Exemple des arguments que vous devez mettre:")
         print(row)
         return len(row)
+    
+def nom_colonnes_table(conn):  
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM "+table)
+    rows = cur.fetchall()
+    print(rows)
+    return rows 
+    
+    
+def mettre_a_jour_des_donnees(conn):
+    cur = conn.cursor()
+    liste=[]
+    table = str(input("Donnez le nom de la Table ou il faut modifier une donnee : "))
+    nbcolonne = int(input("Donnez le nombre de colonnes a modifier : "))
+    requete = "UPDATE "+table+" SET "
+    for i in range(nbcolonne):
+        colonne = str(input(f"colonne n{i+1} : "))
+        liste.append(str(input(f"nouvelle valeur n{i+1} : ")))
+        if i != nbcolonne-1:
+            requete= requete+colonne+"= ? ,"
+        else:
+            requete= requete+colonne+"= ? WHERE "
+    nbcondition = int(input("Donnez le nombre de conditions a ajouter : "))
+    if nbcondition > 1:
+        andor=str(input("voulez vous que toutes les conditions soient respectees, ou l'une d'elles (and/or) ? :"))
+    
+    for i in range(nbcondition):
+        colonne = str(input(f"colonne n{i+1} : "))
+        liste.append(str(input(f"valeur dans la condition n{i+1} : ")))
+        if i != nbcondition-1:
+            if andor == 'or':
+                requete= requete+colonne+"= ? OR "
+            else:
+                requete= requete+colonne+"= ? AND "
+        else:
+            requete= requete+colonne+"= ?"
+
+    cur.execute(requete,liste)
+    print("\n")
+    conn.commit()
+    
+def supprimer_valeur(conn):
+    print("cette fonction n'est pas encore finie, veuillez repasser + tard : )")
+    
+def creer_table(conn):
+    print("cette fonction n'est pas encore finie, veuillez repasser + tard : )")
+    
+def supprimer_table(conn):
+    print("cette fonction n'est pas encore finie, veuillez repasser + tard : )")

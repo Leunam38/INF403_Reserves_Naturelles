@@ -16,7 +16,11 @@ def menu():
         print("2. Exemple de requête")
         print("3. Requête prédéfini")
         print("4. inserer des donnees")
-        print("7. Quitter\033[1;37m")
+        print("5. mettre a jour des donnees")
+        print("6. supprimer une/plusieurs valeurs")
+        print("7. creer une table")
+        print("8. supprimer une table")
+        print("9. Quitter\033[1;37m")
         rep = int(input())
     return rep
 
@@ -53,10 +57,20 @@ def main():
 
     # Remplir la BD
     reset_donnes(conn)
+    cur = conn.cursor()
+    table_name="faune"
+    cur.execute(f"PRAGMA table_info({table_name})")
+
+    # Récupérez toutes les lignes résultantes
+    rows = cur.fetchall()
+
+    # Affichez les noms des colonnes
+    for row in rows:
+        print(row[1])  # row[1] contient le nom de la colonne
 
     # Lire la BD    
     selection=menu()
-    while selection != 7:
+    while selection != 9:
         match selection:
             case 1:
                 requete_main(conn)
@@ -66,6 +80,14 @@ def main():
                 requete_predef(conn)
             case 4:
                 inserer_des_donnees(conn)
+            case 5:
+                mettre_a_jour_des_donnees(conn)
+            case 6:
+                supprimer_valeur(conn)
+            case 7:
+                creer_table(conn)
+            case 8:
+                supprimer_table(conn)
 
         selection=menu()
 
