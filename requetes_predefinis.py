@@ -6,13 +6,13 @@ def requete_predef(conn):
     rep=0
     while rep < 1 or rep > 8:
         print("\033[1;35mChoisissez votre mode de requete:")
-        print("\033[1;36m1. afficher toute une table")
-        print("2. afficher tous les parcours d'une reserve")
-        print("3. afficher les animaux d'une reserve")
-        print("4. afficher les plantes dans une reserve")
-        print("5. chercher un garde forestier")
-        print("6. chercher un animal avec ses caracteristiques et son lieu d'habitat")
-        print("7. chercher une plante avec ses caracteristiques et son lieu d'habitat")
+        print("\033[1;36m1. Afficher toute une table")
+        print("2. Afficher tous les parcours d'une reserve")
+        print("3. Afficher les animaux d'une reserve")
+        print("4. Afficher les plantes dans une reserve")
+        print("5. Chercher un garde forestier")
+        print("6. Chercher un animal avec ses caracteristiques et son lieu d'habitat")
+        print("7. Chercher une plante avec ses caracteristiques et son lieu d'habitat")
         print("8. Retour\n")
         rep = int(input("\033[1;37mchoix: "))
     match rep: #pour appeler les bonnes fonctions
@@ -39,10 +39,9 @@ def parcours_dune_reserve(conn):
     cur = conn.cursor()
     reserve = str(input("Donnez le nom de la reserve : "))
     cur.execute("""
-                SELECT *
-                FROM Parcours JOIN Traverse USING (nom_parcours)
-                              JOIN Reserves_base USING (nom_reserve)
-                WHERE Reserves_base.nom_parcours = ?
+                SELECT nom_parcours
+                FROM Traverse
+                WHERE nom_reserve = ?
                 """,[reserve])
 
     rows = cur.fetchall()
@@ -55,8 +54,8 @@ def animaux_de_la_reserve(conn):
     reserve = str(input("Donnez le nom de la reserve : "))
     cur.execute("""
                 SELECT nom_faune
-                FROM Faune JOIN Habite USING (nom_faune)
-                WHERE Habite.nom_reserve = ?
+                FROM Habite 
+                WHERE nom_reserve = ?
                 """,[reserve])
     print("\n")
     rows = cur.fetchall()
@@ -68,9 +67,8 @@ def fleurs_de_la_reserve(conn):
     reserve = str(input("Donnez le nom de la reserve : "))
     cur.execute("""
                 SELECT nom_flore
-                FROM Flore JOIN PousseDans USING (nom_flore)
-                           JOIN Reserves_base USING (nom_reserve)
-                WHERE Reserves_base.nom_reserve = ?
+                FROM PousseDans 
+                WHERE nom_reserve = ?
                 """,[reserve])
     print("\n")
     rows = cur.fetchall()
@@ -79,13 +77,13 @@ def fleurs_de_la_reserve(conn):
 def cherche_garde(conn):
     """affiche les gardes d'une reserve"""
     cur = conn.cursor()
-    garde = str(input("Donnez le nom du garde : "))
-    garde2 = str(input("Donnez le prenom du garde : "))
+    garde_nom = str(input("Donnez le nom du garde : "))
+    garde_prenom = str(input("Donnez le prenom du garde : "))
     cur.execute("""
                 SELECT *
                 FROM GardesForestier
                 WHERE nom_garde_forestier = ? AND prenom_garde_forestier = ?
-                """,[garde,garde2])
+                """,[garde_nom,garde_prenom])
     print("\n")
     rows = cur.fetchall()
     affichage_requete(rows)
@@ -96,7 +94,7 @@ def chercher_animal(conn):
     animal = str(input("Donnez le nom de l'animal : "))
     cur.execute("""
                 SELECT *
-                FROM Faune JOIN Habite USING (nom_faune)
+                FROM Faune 
                 WHERE nom_faune = ?
                 """,[animal])
     print("\n")
@@ -109,43 +107,45 @@ def chercher_fleur(conn):
     plante = str(input("Donnez le nom de la plante : "))
     cur.execute("""
                 SELECT *
-                FROM Flore JOIN PousseDans USING (nom_flore)
+                FROM Flore 
                 WHERE nom_flore = ?
                 """,[plante])
     print("\n")
     rows = cur.fetchall()
     affichage_requete(rows)
         
+        
+        
+        
+        
+        
 def inserer_des_donnees(conn):
     """Permet d'inserer des donnees dans une table"""
     cur = conn.cursor()
     liste=[]
-    verif=[]
-    table = str(input("Donnez le nom de la Table ou il faut inserer des donnees : ")) #on recupere le nom d'une table
-    verif = affiche_nom_table(conn,1) #permet de recuperer la liste des tables existantes
-    if table not in verif: #permet la verification de l'existence d'une table avant d'inserer des donnees
-        print("La table n'existe pas encore, veuillez la creer avant d'inserer des donnees")
+    table=choix_table(conn)
+    if table==None:
         return
 
+    print("Remplissez les différents information:")
+    tab = affiche_attributs_table(conn, table) #recupere la liste des attributs d'une table
     taille = taille_table(conn,table) #permet d'avoir la longeur de la table
     chaine="?"
     for i in range(taille): #on ajoute autant de valeurs qu'il y a d'attributs dans la table
-        liste.append(input(f"valeur numero {i+1} : "))
+        liste.append(input(f"{tab[i]} : "))
         if i != taille-1: #permet d'ajouter le bon nombre d'arguments dans la requete
             chaine+=",?"
     #execution de la requete
     cur.execute("""
                 INSERT INTO """+table+""" VALUES ("""+ chaine +""")
                 """,liste)
-    print("\n")
+    print("")
     conn.commit() #pseudo-ecriture dans la bdd
         
 def taille_table(conn,table):
     """renvoie la taille de la table passe en argument"""
     cur = conn.cursor()
     t = affiche_attributs_table(conn, table) #recupere la liste des attributs d'une table
-    print("Ce que vous devez mettre:")
-    print(t) #affiche le nom de attributs de la table, afin de guider l'utilisateur dans l'insertion de donnees
     return len(t)
 
 
