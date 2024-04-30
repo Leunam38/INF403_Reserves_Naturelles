@@ -3,6 +3,11 @@ from affichage_req import *
 
 
 def requete_exemple(conn):
+    """
+    Affiche la liste de toutes les reserves.
+
+    :param conn: Connexion à la base de données
+    """
     rep=0
     while rep < 1 or rep > 14:
         print("\033[1;35mChoisissez une des requetes d'exemple:")

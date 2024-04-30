@@ -2,10 +2,13 @@
 from affichage_req import * 
 
 def requete_predef(conn):
-    """Menu secondaire pour que l'utilisateur ait du choix, cette fonction agit comme main et menu"""
+    """Menu secondaire pour que l'utilisateur ait du choix parmi les requetes prédéfinis, cette fonction agit comme main et menu
+
+    :param conn: Connexion à la base de données
+    """
     rep=0
-    while rep < 1 or rep > 8:
-        print("\033[1;35mChoisissez votre mode de requete:")
+    while rep < 1 or rep > 9:
+        print("\033[1;35mChoisissez votre requete prédéfinis:")
         print("\033[1;36m1. Afficher toute une table")
         print("2. Afficher tous les parcours d'une reserve")
         print("3. Afficher les animaux d'une reserve")
@@ -13,7 +16,8 @@ def requete_predef(conn):
         print("5. Chercher un garde forestier")
         print("6. Chercher un animal avec ses caracteristiques et son lieu d'habitat")
         print("7. Chercher une plante avec ses caracteristiques et son lieu d'habitat")
-        print("8. Retour\n")
+        print("8. Afficher les réserves avec plus d'un certain nombre d'animaux protegés")
+        print("9. Retour\n")
         rep = int(input("\033[1;37mchoix: "))
     match rep: #pour appeler les bonnes fonctions
         case 1:
@@ -27,248 +31,152 @@ def requete_predef(conn):
         case 5:
             cherche_garde(conn)
         case 6:
-            chercher_animal(conn) #affichage a revoir
+            chercher_animal(conn) 
         case 7:
-            chercher_fleur(conn) #affichage a revoir
+            chercher_fleur(conn)
+        case 8:
+            reserve_nb_min_animaux_prot(conn)
             
 
-
-        
-def parcours_dune_reserve(conn):
-    """affiche les parcours disponible dans une reserve"""
-    cur = conn.cursor()
-    reserve = str(input("Donnez le nom de la reserve : "))
-    cur.execute("""
-                SELECT nom_parcours
-                FROM Traverse
-                WHERE nom_reserve = ?
-                """,[reserve])
-
-    rows = cur.fetchall()
-    print("\n")
-    affichage_requete(rows)
-        
 def animaux_de_la_reserve(conn):
-    """affiche les animaux d'une reserve"""
+    """Affiche la liste des animaux d'une reserve
+
+    :param conn: Connexion à la base de données
+    """
     cur = conn.cursor()
-    reserve = str(input("Donnez le nom de la reserve : "))
+    reserve = str(input("\033[1;35mDonnez le nom de la reserve : \033[1;37m"))
     cur.execute("""
                 SELECT nom_faune
                 FROM Habite 
                 WHERE nom_reserve = ?
                 """,[reserve])
-    print("\n")
+    rows = cur.fetchall()
+    affichage_requete(rows)
+        
+def parcours_dune_reserve(conn):
+    """Affiche la liste des parcours disponible dans une reserve
+
+    :param conn: Connexion à la base de données
+    """
+    cur = conn.cursor()
+    reserve = str(input("\033[1;35mDonnez le nom de la reserve : \033[1;37m"))
+    cur.execute("""
+                SELECT nom_parcours
+                FROM Traverse
+                WHERE nom_reserve = ?
+                """,[reserve])
+    rows = cur.fetchall()
+    affichage_requete(rows)
+        
+def animaux_de_la_reserve(conn):
+    """Affiche la liste des animaux d'une reserve
+
+    :param conn: Connexion à la base de données
+    """
+    cur = conn.cursor()
+    reserve = str(input("\033[1;35mDonnez le nom de la reserve : \033[1;37m"))
+    cur.execute("""
+                SELECT nom_faune
+                FROM Habite 
+                WHERE nom_reserve = ?
+                """,[reserve])
     rows = cur.fetchall()
     affichage_requete(rows)
         
 def fleurs_de_la_reserve(conn):
-    """affiche les fleurs d'une reserve"""
+    """Affiche la liste des fleurs d'une reserve
+
+    :param conn: Connexion à la base de données
+    """
     cur = conn.cursor()
-    reserve = str(input("Donnez le nom de la reserve : "))
+    reserve = str(input("\033[1;35mDonnez le nom de la reserve : \033[1;37m"))
     cur.execute("""
                 SELECT nom_flore
                 FROM PousseDans 
                 WHERE nom_reserve = ?
                 """,[reserve])
-    print("\n")
     rows = cur.fetchall()
     affichage_requete(rows)
         
 def cherche_garde(conn):
-    """affiche les gardes d'une reserve"""
+    """Affiche la carte d'identité d'un garde
+
+    :param conn: Connexion à la base de données
+    """
     cur = conn.cursor()
-    garde_nom = str(input("Donnez le nom du garde : "))
-    garde_prenom = str(input("Donnez le prenom du garde : "))
+    garde_nom = str(input("\033[1;35mDonnez le nom du garde : \033[1;37m"))
+    garde_prenom = str(input("\033[1;35mDonnez le prenom du garde : \033[1;37m"))
     cur.execute("""
                 SELECT *
                 FROM GardesForestier
                 WHERE nom_garde_forestier = ? AND prenom_garde_forestier = ?
                 """,[garde_nom,garde_prenom])
-    print("\n")
     rows = cur.fetchall()
     affichage_requete(rows)
         
 def chercher_animal(conn):
-    """permet de trouver la fiche d'identité d'un animal dans la bdd"""
+    """Trouver la fiche d'identité d'un animal dans la base de donnée ainsi que les réserves où il est présent
+
+    :param conn: Connexion à la base de données
+    """
     cur = conn.cursor()
-    animal = str(input("Donnez le nom de l'animal : "))
+    animal = str(input("\033[1;35mDonnez le nom de l'animal : \033[1;37m"))
     cur.execute("""
                 SELECT *
                 FROM Faune 
                 WHERE nom_faune = ?
                 """,[animal])
-    print("\n")
+    rows = cur.fetchall()
+    affichage_requete(rows)
+    
+    print("\n\033[1;34mHabite dans les réserves:\033[1;37m")
+    cur.execute("""
+                SELECT nom_reserve
+                FROM Habite 
+                WHERE nom_faune = ?
+                """,[animal])
     rows = cur.fetchall()
     affichage_requete(rows)
         
 def chercher_fleur(conn):
-    """permet de trouver la fiche d'identité d'une fleur dans la bdd"""
+    """Trouver la fiche d'identité d'une plante dans la base de donnée ainsi que les réserves où il est présent
+
+    :param conn: Connexion à la base de données
+    """
     cur = conn.cursor()
-    plante = str(input("Donnez le nom de la plante : "))
+    plante = str(input("\033[1;35mDonnez le nom de la plante : \033[1;37m"))
     cur.execute("""
                 SELECT *
                 FROM Flore 
                 WHERE nom_flore = ?
                 """,[plante])
-    print("\n")
+    rows = cur.fetchall()
+    affichage_requete(rows)
+    
+    print("\n\033[1;34mPousse dans les réserves:\033[1;37m")
+    cur.execute("""
+                SELECT nom_reserve
+                FROM PousseDans 
+                WHERE nom_flore = ?
+                """,[plante])
     rows = cur.fetchall()
     affichage_requete(rows)
         
         
-        
-        
-        
-        
-def inserer_des_donnees(conn):
-    """Permet d'inserer des donnees dans une table"""
-    cur = conn.cursor()
-    liste=[]
-    table=choix_table(conn)
-    if table==None:
-        return
+def reserve_nb_min_animaux_prot(conn):
+    """Affiche les réserves avec plus de n animaux
 
-    print("Remplissez les différents information:")
-    tab = affiche_attributs_table(conn, table) #recupere la liste des attributs d'une table
-    taille = taille_table(conn,table) #permet d'avoir la longeur de la table
-    chaine="?"
-    for i in range(taille): #on ajoute autant de valeurs qu'il y a d'attributs dans la table
-        liste.append(input(f"{tab[i]} : "))
-        if i != taille-1: #permet d'ajouter le bon nombre d'arguments dans la requete
-            chaine+=",?"
-    #execution de la requete
+    :param conn: Connexion à la base de données
+    """
+    cur = conn.cursor()
+    reserve = int(input("\033[1;35mDonnez le nombre d'animaux protegé minimal : \033[1;37m"))
     cur.execute("""
-                INSERT INTO """+table+""" VALUES ("""+ chaine +""")
-                """,liste)
-    print("")
-    conn.commit() #pseudo-ecriture dans la bdd
+                SELECT nom_reserve
+                FROM Reserves 
+                WHERE nb_animaux_proteges_reserve >= ?
+                """,[reserve])
+    rows = cur.fetchall()
+    affichage_requete(rows)
         
-def taille_table(conn,table):
-    """renvoie la taille de la table passe en argument"""
-    cur = conn.cursor()
-    t = affiche_attributs_table(conn, table) #recupere la liste des attributs d'une table
-    return len(t)
-
-
-def supprimer_dernier_caractere(chaine):
-    """supprime le dernier caractere d'une chaine de caractere"""
-    liste = chaine.split()
-    liste.pop()
-    return " ".join(liste)
-    
-    
-def mettre_a_jour_des_donnees(conn):
-    """Cette fonction permet de mettre a jour des donnees dans un table"""
-    cur = conn.cursor()
-    liste=[]
-    table = str(input("Donnez le nom de la Table ou il faut modifier une donnee : ")) #recuperation de la table
-    nbcolonne = int(input("Donnez le nombre de colonnes a modifier : ")) #permet la modification d'une ou plusieurs valeurs en meme temps
-    requete = "UPDATE "+table+" SET " #debut de la requete (qu'on met a jour par la suite)
-    for i in range(nbcolonne): #'modification' des valeurs choisies
-        colonne = str(input(f"colonne a modifier n{i+1} : ")) #colonne ou modifier la valeur
-        liste.append(str(input(f"nouvelle valeur n{i+1} : ")))#nouvelle valeur
-        if i != nbcolonne-1: #suite de l'ecriture de la requete en fonction du nombre de donnees modifiee
-            requete= requete+colonne+"= ? ,"
-        else:
-            requete= requete+colonne+"= ? WHERE "
-    nbcondition = int(input("Donnez le nombre de conditions a ajouter : ")) #permet de trouver les anciennes valeurs a modifier
-    if nbcondition > 1: #permet d'ajouter plusieurs valeurs/endroits a modifier, avec des and ou des or au choix
-        andor=str(input("voulez vous que toutes les conditions soient respectees, ou l'une d'elles (and/or) ? :"))
-    elif nbcondition == 0: #permet de pas causer une erreur si l'utilisateur ne choisit pas de rentrer les donnees a remplacer
-        print("Une condition minimum est obligatoire ! Sinon on ne sait pas quels sont les donnees qu'il faut remplacer")
-        return
-    for i in range(nbcondition): #permet de rentrer les donnees a remplacer
-        colonne = str(input(f"colonne n{i+1} : "))
-        liste.append(str(input(f"valeur dans la condition n{i+1} : ")))
-        if i != nbcondition-1: #ecriture de la requete, avec des and ou or au choix
-            if andor == 'or': #permet de choisir entre or et and (and par defaut)
-                requete= requete+colonne+"= ? OR "
-            else:
-                requete= requete+colonne+"= ? AND "
-        else:
-            requete= requete+colonne+"= ?"
-
-    cur.execute(requete,liste) #execution de la requete
-    print("\n")
-    conn.commit() #pseudo-ecriture dans la bdd
-
-
-
-
-
-
-
-def supprimer_valeur(conn):
-    """permet de supprimer une valeur dans une table, si celles-ci existent"""
-    cur = conn.cursor()
-    table = str(input("Donnez le nom de la Table ou il faut supprimer une/toute donnee : "))
-    colonne = str(input("Donnez la colonne ou il faut supprimer une donnee : "))
-    valeur = input("Donnez la valeur de cette colonne a supprimer : ")
-    requete = "DELETE FROM "+table+" WHERE "+colonne+" = ?"
-    cur.execute(requete,[valeur])
-    print("\n")
-    conn.commit()
-
-
-
-
-
-
-def creer_table(conn):
-    """permet de creer une table"""
-    cur = conn.cursor()
-    liste=[]
-    requete = "CREATE TABLE IF NOT EXISTS " #debut de la requete
-    table = str(input("Donnez le nom de la Table a creer : "))
-    requete = requete + table + " ( "
-    nbattributs = int(input("Donnez le nombre d'attributs : ")) #permet de creer une table avec le nombre d'attributs qu'on souhaite
-    for i in range(nbattributs):
-        colonne = str(input(f"colonne n{i+1} : "))
-        type = str(input("Donnez le type de l'attribut (INTEGER/TEXT/DATE/REAL/...) : ")) #permet d'associer un type a chaque attribut
-        requete = requete +" "+ colonne+" "+type + " NOT NULL ," #ecriture de la requete
-
-    pk = str(input("Ajouter une primary key ? (o/n) : ")) #l'utilisateur peut rajouter une primary key si il le souhaite
-    if pk == "o":
-        nom = str(input("nom de la primary key : "))
-        requete = requete + "CONSTRAINT pk_"+nom+" PRIMARY KEY ("+nom+") ," #ecriture de la primary key
-    nbfk = int(input("Combien de foreign key ? : ")) #l'utilisateur choisit combien de foreign key il veut ajouter (il peut mettre 0)
-    for i in range(nbfk): #construction des lignes de foreign key
-        fk = str(input("nom de la foreign key/attribut a lier : "))
-        fk2 = str(input("nom de la table a lier : "))
-        fk3 = str(input("nom de l'attribut a lier dans l'autre table : "))
-        requete = requete + "CONSTRAINT fk_"+fk +" FOREIGN KEY ("+fk+") REFERENCES "+fk2+"("+fk3+") ," #ecriture des foreign key
-    nbc = int(input("Combien de check ? : ")) #l'utilisateur peut ajouter des check si il veut
-    for i in range(nbc):#permet l'ecriture des check
-        ck = str(input("nom de la colonne a check : "))
-        cond = str(input("condition (attribut = condition) : "))
-        op = str(input("operande (=/</>/!=/<=/>=) : "))
-        requete = requete+"CONSTRAINT ck_"+ck+" CHECK ("+ck+" "+op+" "+cond+") ," #ecriture du check
-    requete = supprimer_dernier_caractere(requete) #permet de supprimer la derniere virgule dans la requete (cette methode permet d'optimiser un peu la fonction)
-    requete+=')'
-    cur.execute(requete) #execution de la requete
-    print("\n")
-    conn.commit()#pseudo-ecriture de la nouvelle table dans la bdd
-
-
-
-
-
-def supprimer_table(conn):
-    """permet de supprimer une table, si celle-ci existe"""
-    cur = conn.cursor()
-    #avertissement a l'utilisateur, lui disant qu'une table ne peut etre supprimee suivant un certain ordre (pour ne pas exploser toute la bdd)
-    warn = str(input("/!\ Attention, supprimer les tables se fait dans un ordre précis, voulez-vous voir la liste des tables supprimable DANS L'ORDRE ? (o/n) : "))
-    if warn == "o": #liste des tables supprimable dans l'ordre, C.A.D ne pas supprimer une table en bas de liste des le debut
-        print("- tables personnalisées")
-        print("- Traverse")
-        print("- PousseDans")
-        print("- Habite")
-        print("- GardesForestier")
-        print("- Parcours")
-        print("- Flore")
-        print("- Faune")
-        print("- Reserves_base")
-        print("- Reserves")
-    table = str(input("Donnez le nom de la Table a supprimer : "))
-    cur.execute("DROP TABLE IF EXISTS "+table)
-    print("\n")
-    conn.commit()
+        
+  
