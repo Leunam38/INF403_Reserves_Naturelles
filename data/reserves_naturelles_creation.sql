@@ -85,15 +85,26 @@ CREATE TABLE IF NOT EXISTS Traverse(
 ); 
 
 CREATE VIEW IF NOT EXISTS Reserves(nom_reserve,code_reserve,superficie_reserve,date_creation_reserve,numero_departement_reserve,nb_animaux_proteges_reserve) AS
-WITH Reserves_with_nb AS (SELECT nom_reserve,code_reserve,superficie_reserve,date_creation_reserve,numero_departement_reserve, SUM(nb_individus_habite) AS nb_animaux_proteges_reserve
-							FROM Reserves_base JOIN Habite USING (nom_reserve) 
-											   JOIN Faune USING (nom_faune)
-							WHERE est_protege_faune = 'oui'
-							GROUP BY nom_reserve,code_reserve,superficie_reserve,date_creation_reserve,numero_departement_reserve)
-SELECT *
-FROM Reserves_with_nb
-UNION 
-SELECT nom_reserve,code_reserve,superficie_reserve,date_creation_reserve,numero_departement_reserve,0
-FROM Reserves_base 
-WHERE nom_reserve NOT IN (SELECT nom_reserve
-						  FROM Reserves_with_nb);
+WITH nb_individus AS (
+	SELECT nom_reserve,
+	SUM(nb_individus_habite) AS nb_animaux_proteges_reserve
+	FROM Reserves_base JOIN Habite USING (nom_reserve) 
+		JOIN Faune USING (nom_faune)
+	WHERE est_protege_faune = 'oui'
+	GROUP BY nom_reserve
+	),
+	nb_individus_tot AS(
+	SELECT nom_reserve, nb_animaux_proteges_reserve
+	FROM nb_individus
+	UNION 
+	SELECT nom_reserve, 0
+	FROM Reserves_base
+	WHERE nom_reserve NOT IN (SELECT nom_reserve
+				  FROM nb_individus))
+SELECT nom_reserve,
+	   code_reserve,
+	   superficie_reserve,
+	   date_creation_reserve,
+	   numero_departement_reserve, 
+	   nb_animaux_proteges_reserve
+FROM nb_individus_tot JOIN Reserves_base USING (nom_reserve);
