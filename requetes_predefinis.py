@@ -112,6 +112,7 @@ def cherche_garde(conn):
                 WHERE nom_garde_forestier = ? AND prenom_garde_forestier = ?
                 """,[garde_nom,garde_prenom])
     rows = cur.fetchall()
+    affiche_attributs_table(conn,"GardesForestier",1)
     affichage_requete(rows)
         
 def chercher_animal(conn):
@@ -127,6 +128,7 @@ def chercher_animal(conn):
                 WHERE nom_faune = ?
                 """,[animal])
     rows = cur.fetchall()
+    affiche_attributs_table(conn,"Faune",1)
     affichage_requete(rows)
     
     print("\n\033[1;34mHabite dans les réserves:\033[1;37m")
@@ -151,6 +153,7 @@ def chercher_fleur(conn):
                 WHERE nom_flore = ?
                 """,[plante])
     rows = cur.fetchall()
+    affiche_attributs_table(conn,"Flore",1)
     affichage_requete(rows)
     
     print("\n\033[1;34mPousse dans les réserves:\033[1;37m")
@@ -177,6 +180,6 @@ def reserve_nb_min_animaux_prot(conn):
                 """,[reserve])
     rows = cur.fetchall()
     affichage_requete(rows)
-        
+               
         
   

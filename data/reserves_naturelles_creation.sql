@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS Reserves_base(
 	CONSTRAINT pk_reserve PRIMARY KEY (nom_reserve),
 	CONSTRAINT uk_reserve_code UNIQUE (code_reserve),
 	CONSTRAINT ck_reserve_superficie CHECK (superficie_reserve > 0),
-	CONSTRAINT ck_reserve_numero_departement CHECK (numero_departement_reserve > 0 AND numero_departement_reserve < 97)
+	CONSTRAINT ck_reserve_numero_departement CHECK (numero_departement_reserve > 0 AND numero_departement_reserve < 97)	
+	CONSTRAINT ck_valid_date_reserve CHECK(date_creation_reserve IS date(date_creation_reserve,'+0 days'))
 );
 	
 CREATE TABLE IF NOT EXISTS Faune(
@@ -53,7 +54,7 @@ CREATE TABLE IF NOT EXISTS GardesForestier(
 	date_de_naissance_garde_forestier DATE NOT NULL,
 	CONSTRAINT pk_gardesForestier_matricule PRIMARY KEY (matricule_garde_forestier),
 	CONSTRAINT fk_gardesForestier_reserve FOREIGN KEY (reserve_de_travail_garde_forestier) REFERENCES Reserves_base (nom_reserve),
-	CONSTRAINT valid_date CHECK(date_de_naissance_garde_forestier IS date(date_de_naissance_garde_forestier,'+0 days'))
+	CONSTRAINT ck_valid_date_garde CHECK(date_de_naissance_garde_forestier IS date(date_de_naissance_garde_forestier,'+0 days'))
 
 );
 
@@ -73,7 +74,8 @@ CREATE TABLE IF NOT EXISTS PousseDans(
 	nb_individus_pousse_dans INTEGER NOT NULL,
 	CONSTRAINT pk_pousse_dans PRIMARY KEY (nom_reserve,nom_flore),
 	CONSTRAINT fk_pousse_dans_reserve FOREIGN KEY (nom_reserve) REFERENCES Reserves_base (nom_reserve),
-	CONSTRAINT fk_pousse_dans_flore FOREIGN KEY (nom_flore) REFERENCES Flore (nom_flore)
+	CONSTRAINT fk_pousse_dans_flore FOREIGN KEY (nom_flore) REFERENCES Flore (nom_flore),
+	CONSTRAINT ck_pousse_dans_nb CHECK (nb_individus_pousse_dans >= 0)
 );
 
 CREATE TABLE IF NOT EXISTS Traverse(
@@ -86,10 +88,9 @@ CREATE TABLE IF NOT EXISTS Traverse(
 
 CREATE VIEW IF NOT EXISTS Reserves(nom_reserve,code_reserve,superficie_reserve,date_creation_reserve,numero_departement_reserve,nb_animaux_proteges_reserve) AS
 WITH nb_individus AS (
-	SELECT nom_reserve,
-	SUM(nb_individus_habite) AS nb_animaux_proteges_reserve
+	SELECT nom_reserve,	SUM(nb_individus_habite) AS nb_animaux_proteges_reserve
 	FROM Reserves_base JOIN Habite USING (nom_reserve) 
-		JOIN Faune USING (nom_faune)
+					   JOIN Faune USING (nom_faune)
 	WHERE est_protege_faune = 'oui'
 	GROUP BY nom_reserve
 	),
@@ -100,7 +101,7 @@ WITH nb_individus AS (
 	SELECT nom_reserve, 0
 	FROM Reserves_base
 	WHERE nom_reserve NOT IN (SELECT nom_reserve
-				  FROM nb_individus))
+							  FROM nb_individus))
 SELECT nom_reserve,
 	   code_reserve,
 	   superficie_reserve,
